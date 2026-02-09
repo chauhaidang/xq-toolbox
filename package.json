@@ -1,0 +1,40 @@
+{
+  "name": "@chauhaidang/xq-toolbox",
+  "version": "0.0.1",
+  "description": "A monorepo containing all TypeScript tools, libraries, modules, and frameworks for XQ applications",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "typecheck": "tsc --build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chauhaidang/xq-toolbox.git"
+  },
+  "keywords": [
+    "xq",
+    "toolbox",
+    "monorepo",
+    "typescript"
+  ],
+  "author": "chauhaidang",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/chauhaidang/xq-toolbox/issues"
+  },
+  "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

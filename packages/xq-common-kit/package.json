@@ -1,0 +1,58 @@
+{
+  "name": "@chauhaidang/xq-common-kit",
+  "version": "1.0.8",
+  "description": "TypeScript common kit for XQ applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "clean": "rm -rf dist"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chauhaidang/xq-toolbox.git",
+    "directory": "packages/xq-common-kit"
+  },
+  "keywords": [
+    "xq",
+    "typescript",
+    "common",
+    "kit",
+    "logger",
+    "config",
+    "yaml"
+  ],
+  "author": "chauhaidang",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/chauhaidang/xq-toolbox/issues"
+  },
+  "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.10.1",
+    "@types/xml2js": "^0.4.14",
+    "@types/jest": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.50.0",
+    "jest": "^30.1.1",
+    "ts-jest": "^29.2.0",
+    "typescript": "^5.9.3"
+  }
+}
