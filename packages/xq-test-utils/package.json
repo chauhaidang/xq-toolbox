@@ -1,6 +1,6 @@
 {
   "name": "@chauhaidang/xq-test-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Test utilities for XQ component and integration tests (database helper, wait-for-service)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,7 +26,7 @@
   "bugs": {"url": "https://github.com/chauhaidang/xq-toolbox/issues"},
   "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
   "dependencies": {
-    "@chauhaidang/xq-common-kit": "^1.0.10",
+    "@chauhaidang/xq-common-kit": "^1.0.12",
     "pg": "^8.16.3",
     "wait-on": "^8.0.1"
   },
