@@ -1,0 +1,18 @@
+services:
+  web-app:
+    image: nginx
+    tag: alpine
+    ports:
+      - "8080:80"
+    environment:
+      NGINX_HOST: localhost
+
+  database:
+    image: postgres
+    tag: "15"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass

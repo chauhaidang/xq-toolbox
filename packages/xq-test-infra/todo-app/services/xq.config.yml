@@ -1,0 +1,8 @@
+# Centralized dependency groups
+dependencies:
+  database:
+    - postgres
+
+# Port range configuration
+portRange:
+  start: 3001

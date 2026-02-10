@@ -1,0 +1,27 @@
+services:
+  - id: service-a
+    image: nginx
+    tag: "1.25"
+    ports:
+      - "8081:80"
+    env:
+      APP_ENV: development
+      LOG_LEVEL: debug
+
+  - id: service-b
+    image: alpine
+    tag: "3.18"
+    ports:
+      - "8082:80"
+    env:
+      SVC_B_FLAG: "true"
+
+# Optional: a service that exposes a custom port
+  - id: service-c
+    image: httpd
+    tag: "2.4"
+    ports:
+      - "8083:80"
+    env:
+      EXAMPLE: value
+

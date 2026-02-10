@@ -1,0 +1,6 @@
+portRange:
+  start: 3001
+
+dependencies:
+  database:
+    - postgres

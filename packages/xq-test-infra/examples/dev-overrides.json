@@ -1,0 +1,24 @@
+{
+  "services": {
+    "backend": {
+      "tag": "development",
+      "environment": {
+        "NODE_ENV": "development",
+        "DEBUG": "app:*",
+        "LOG_LEVEL": "debug"
+      },
+      "volumes": [
+        "./src:/app/src",
+        "./package.json:/app/package.json"
+      ]
+    },
+    "database": {
+      "environment": {
+        "POSTGRES_PASSWORD": "devpassword"
+      },
+      "volumes": [
+        "./init-scripts:/docker-entrypoint-initdb.d"
+      ]
+    }
+  }
+}

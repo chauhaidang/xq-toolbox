@@ -1,0 +1,30 @@
+services:
+  frontend:
+    image: nginx
+    tag: alpine
+    ports:
+      - "8080:80"
+    environment:
+      NGINX_HOST: localhost
+      NGINX_PORT: 80
+
+  backend:
+    image: node
+    tag: 18-alpine
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://app:secret@database:5432/appdb
+    depends_on:
+      - database
+
+  database:
+    image: postgres
+    tag: "15"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret

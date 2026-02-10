@@ -1,0 +1,11 @@
+name: postgres
+image: postgres
+tag: latest
+environment:
+  POSTGRES_DB: todoapp
+  POSTGRES_USER: todouser
+  POSTGRES_PASSWORD: todopass
+ports:
+  - "5432:5432"
+volumes:
+  - "./todo-app/src/todo-services/database/init.sql:/docker-entrypoint-initdb.d/init.sql"

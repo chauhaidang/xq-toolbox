@@ -1,0 +1,9 @@
+name: postgres
+image: postgres
+tag: latest
+environment:
+  POSTGRES_DB: exampledb
+  POSTGRES_USER: exampleuser
+  POSTGRES_PASSWORD: examplepass
+ports:
+  - "5432:5432"

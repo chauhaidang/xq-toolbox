@@ -1,0 +1,51 @@
+# Centralized dependency groups
+dependencies:
+  database:
+    - postgres
+
+# Port range configuration
+portRange:
+  start: 3001
+
+services:
+  postgres:
+    image: postgres
+    tag: "latest"
+    environment:
+      POSTGRES_DB: todoapp
+      POSTGRES_USER: todouser
+      POSTGRES_PASSWORD: todopass
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./src/todo-services/database/init.sql:/docker-entrypoint-initdb.d/init.sql"
+
+  todo-read-service:
+    image: todo-read-service
+    tag: latest
+    port: 3000  # Container port - host port will be auto-assigned
+    environment:
+      DB_HOST: postgres
+      DB_USER: todouser
+      DB_PASSWORD: todopass
+      DB_NAME: todoapp
+      DB_PORT: 5432
+      NODE_ENV: production
+      PORT: 3000
+    dependencyGroups:
+      - database
+
+  todo-write-service:
+    image: todo-write-service
+    tag: latest
+    port: 3000  # Container port - host port will be auto-assigned
+    environment:
+      DB_HOST: postgres
+      DB_USER: todouser
+      DB_PASSWORD: todopass
+      DB_NAME: todoapp
+      DB_PORT: 5432
+      NODE_ENV: production
+      PORT: 3000
+    dependencyGroups:
+      - database

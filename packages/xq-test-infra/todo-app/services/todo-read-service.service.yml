@@ -1,0 +1,17 @@
+name: todo-read-service
+image: todo-read-service
+tag: latest
+port: 3000
+environment:
+  DB_HOST: postgres
+  DB_USER: todouser
+  DB_PASSWORD: todopass
+  DB_NAME: todoapp
+  DB_PORT: 5432
+  NODE_ENV: production
+  PORT: 3000
+dependencyGroups:
+  - database
+routes:
+  - methods: [GET]
+    paths: ["/api/todos/*", "/health"]

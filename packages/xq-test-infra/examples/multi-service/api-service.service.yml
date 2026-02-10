@@ -1,0 +1,14 @@
+name: api-service
+image: node
+tag: 18-alpine
+port: 3000
+environment:
+  DB_HOST: postgres
+  DB_USER: exampleuser
+  DB_PASSWORD: examplepass
+  DB_NAME: exampledb
+  DB_PORT: 5432
+  NODE_ENV: production
+  PORT: 3000
+depends_on:
+  - postgres

@@ -1,0 +1,10 @@
+image: ghcr.io/chauhaidang/xq-fitness-read-service
+tag: latest
+port: 8080
+dependencyGroups:
+  - database
+environment:
+  DB_USER: xq_user
+  DB_PASSWORD: xq_password
+  DB_HOST: xq-fitness-db
+  SPRING_DATASOURCE_URL: jdbc:postgresql://xq-fitness-db:5432/xq_fitness

@@ -1,0 +1,9 @@
+name: web-service
+image: nginx
+tag: alpine
+port: 80
+environment:
+  API_HOST: api-service
+  API_PORT: 3000
+depends_on:
+  - api-service
