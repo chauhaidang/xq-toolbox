@@ -46,6 +46,10 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
+    # Grant permission to publish to GitHub Packages (required for GITHUB_TOKEN)
+    permissions:
+      contents: read
+      packages: write
     # Only publish when package.json version has changed in the build, or on manual dispatch
     if: needs.build.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
     steps:
@@ -54,7 +58,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          registry-url: 'https://npm.pkg.github.com'
+          registry-url: ${{ secrets.NPM_REGISTRY_URL || 'https://npm.pkg.github.com' }}
           cache: 'npm'
           scope: '@chauhaidang'
       - name: Install dependencies
