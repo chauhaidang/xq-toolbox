@@ -26,7 +26,7 @@
   "bugs": {"url": "https://github.com/chauhaidang/xq-toolbox/issues"},
   "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
   "dependencies": {
-    "@chauhaidang/xq-common-kit": "file:../xq-common-kit",
+    "@chauhaidang/xq-common-kit": "^1.0.10",
     "pg": "^8.16.3",
     "wait-on": "^8.0.1"
   },
