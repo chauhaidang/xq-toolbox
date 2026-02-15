@@ -1,59 +1,433 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XQ Test Report</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 2rem; line-height: 1.5; color: #333; }
-        h1 { margin-bottom: 1rem; }
-        pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: monospace; white-space: pre-wrap; }
-        .status { margin-bottom: 1rem; padding: 0.5rem 1rem; border-radius: 4px; display: inline-block; }
-        .success { background: #e6fffa; color: #047481; }
-        .error { background: #fff5f5; color: #c05621; }
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #16a34a;
+            --error-color: #dc2626;
+            --warning-color: #ca8a04;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .timestamp {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .metric-passed {
+            color: var(--success-color);
+        }
+
+        .metric-failed {
+            color: var(--error-color);
+        }
+
+        .metric-skipped {
+            color: var(--warning-color);
+        }
+
+        .filters {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .suite-card {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .suite-header {
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .suite-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .suite-meta {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .test-list {
+            list-style: none;
+        }
+
+        .test-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            font-size: 0.875rem;
+        }
+
+        .status-pass {
+            background: #dcfce7;
+            color: var(--success-color);
+        }
+
+        .status-fail {
+            background: #fee2e2;
+            color: var(--error-color);
+        }
+
+        .status-skip {
+            background: #fef9c3;
+            color: var(--warning-color);
+        }
+
+        .test-content {
+            flex: 1;
+        }
+
+        .test-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .test-classname {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            color: var(--error-color);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            white-space: pre-wrap;
+        }
+
+        .duration {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
+
 <body>
-    <h1>Test Execution Report</h1>
-    <div id="status-message"></div>
-    
-    <h2>Raw XML Output</h2>
-    <div id="report-content">
-        Waiting for data...
+    <div class="container">
+        <header>
+            <div>
+                <h1>Test Execution Report</h1>
+                <div id="timestamp" class="timestamp"></div>
+            </div>
+            <!-- Status message area -->
+            <div id="status-message"></div>
+        </header>
+
+        <div id="dashboard" style="display: none;">
+            <div class="summary-grid">
+                <div class="card">
+                    <span class="metric-label">Total Tests</span>
+                    <div id="total-tests" class="metric-value">0</div>
+                </div>
+                <div class="card">
+                    <span class="metric-label">Passed</span>
+                    <div id="passed-tests" class="metric-value metric-passed">0</div>
+                </div>
+                <div class="card">
+                    <span class="metric-label">Failed</span>
+                    <div id="failed-tests" class="metric-value metric-failed">0</div>
+                </div>
+                <div class="card">
+                    <span class="metric-label">Skipped</span>
+                    <div id="skipped-tests" class="metric-value metric-skipped">0</div>
+                </div>
+                <div class="card">
+                    <span class="metric-label">Duration</span>
+                    <div id="total-duration" class="metric-value">0s</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All Tests</button>
+                <button class="filter-btn" data-filter="failed">Failed Only</button>
+                <button class="filter-btn" data-filter="slow">Slow (>1s)</button>
+            </div>
+
+            <div id="suites-container"></div>
+        </div>
+
+        <div id="loading" class="empty-state">
+            Loading report data...
+        </div>
     </div>
 
-    <!-- Data will be injected here by the generation script -->
     <script>
-        // The generate-report.js script injects window.xqTestReportData here
-        
         document.addEventListener('DOMContentLoaded', () => {
-            const contentDiv = document.getElementById('report-content');
-            const statusDiv = document.getElementById('status-message');
-            
             if (window.xqTestReportData) {
-                statusDiv.textContent = 'Report data loaded successfully';
-                statusDiv.className = 'status success';
-                
-                // Simple display of the XML content for now
-                // In a real reporter, we would parse this XML and show a nice UI
-                contentDiv.innerHTML = `<pre>${escapeHtml(window.xqTestReportData)}</pre>`;
+                try {
+                    renderReport(window.xqTestReportData);
+                } catch (e) {
+                    showError('Failed to parse report data: ' + e.message);
+                }
             } else {
-                statusDiv.textContent = 'No report data found. This file should be generated by the report tool.';
-                statusDiv.className = 'status error';
-                contentDiv.textContent = '';
+                showError('No test data found. Please regenerate the report.');
             }
         });
 
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        function showError(msg) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = msg;
+            statusDiv.style.color = 'var(--error-color)';
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function renderReport(xmlString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlString, "text/xml");
+
+            // Extract Metrics
+            const testSuites = doc.querySelectorAll('testsuite');
+            let total = 0, passed = 0, failed = 0, skipped = 0, duration = 0;
+
+            const suitesData = Array.from(testSuites).map(suite => {
+                const suiteTests = parseInt(suite.getAttribute('tests') || '0');
+                const suiteFailures = parseInt(suite.getAttribute('failures') || '0');
+                const suiteErrors = parseInt(suite.getAttribute('errors') || '0');
+                const suiteSkipped = parseInt(suite.getAttribute('skipped') || '0');
+                const suiteTime = parseFloat(suite.getAttribute('time') || '0');
+
+                total += suiteTests;
+                failed += suiteFailures + suiteErrors;
+                skipped += suiteSkipped;
+                duration += suiteTime;
+
+                return {
+                    name: suite.getAttribute('name'),
+                    time: suiteTime,
+                    tests: Array.from(suite.querySelectorAll('testcase')).map(test => {
+                        const failure = test.querySelector('failure');
+                        const error = test.querySelector('error');
+                        const skippedElem = test.querySelector('skipped');
+
+                        let status = 'pass';
+                        if (failure || error) status = 'fail';
+                        else if (skippedElem) status = 'skip';
+
+                        return {
+                            name: test.getAttribute('name'),
+                            classname: test.getAttribute('classname'),
+                            time: parseFloat(test.getAttribute('time') || '0'),
+                            status: status,
+                            error: failure ? failure.textContent : (error ? error.textContent : null)
+                        };
+                    })
+                };
+            });
+
+            passed = total - failed - skipped;
+
+            // Update DOM
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('timestamp').textContent = 'Generated on ' + new Date().toLocaleString();
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('passed-tests').textContent = passed;
+            document.getElementById('failed-tests').textContent = failed;
+            document.getElementById('skipped-tests').textContent = skipped;
+            document.getElementById('total-duration').textContent = duration.toFixed(2) + 's';
+
+            renderSuites(suitesData);
+
+            // Filter Logic
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderSuites(suitesData, e.target.dataset.filter);
+                });
+            });
+        }
+
+        function renderSuites(suites, filter = 'all') {
+            const container = document.getElementById('suites-container');
+            container.innerHTML = '';
+
+            suites.forEach(suite => {
+                const filteredTests = suite.tests.filter(test => {
+                    if (filter === 'failed') return test.status === 'fail';
+                    if (filter === 'slow') return test.time > 1.0;
+                    return true;
+                });
+
+                if (filteredTests.length === 0 && filter !== 'all') return;
+
+                const suiteEl = document.createElement('div');
+                suiteEl.className = 'suite-card';
+
+                // Suite Header
+                const header = document.createElement('div');
+                header.className = 'suite-header';
+                header.innerHTML = `
+                    <div class="suite-title">
+                        <span>${suite.name}</span>
+                    </div>
+                    <div class="suite-meta">
+                        ${suite.time.toFixed(3)}s
+                    </div>
+                `;
+                suiteEl.appendChild(header);
+
+                // Tests List
+                const list = document.createElement('ul');
+                list.className = 'test-list';
+
+                (filter === 'all' ? suite.tests : filteredTests).forEach(test => {
+                    const item = document.createElement('li');
+                    item.className = 'test-item';
+
+                    const icon = test.status === 'pass' ? '✓' : (test.status === 'fail' ? '✕' : '-');
+                    const statusClass = `status-${test.status}`;
+
+                    item.innerHTML = `
+                        <div class="status-icon ${statusClass}">${icon}</div>
+                        <div class="test-content">
+                            <div class="test-name">${test.name}</div>
+                            <div class="test-classname">${test.classname}</div>
+                            ${test.error ? `<div class="error-message">${test.error}</div>` : ''}
+                        </div>
+                        <div class="duration">${test.time.toFixed(3)}s</div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                suiteEl.appendChild(list);
+                container.appendChild(suiteEl);
+            });
         }
     </script>
 </body>
+
 </html>
