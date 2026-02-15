@@ -1,0 +1,81 @@
+name: Test and Report
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Functionality:
+# 1. Run tests and generate JUnit XML
+# 2. Generate a standalone HTML report
+# 3. Upload report as an artifact
+# 4. Deploy report to GitHub Pages (on push to main)
+
+permissions:
+  contents: read
+  pages: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  test-and-build-report:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run Tests
+      # Ensure your test runner outputs junit.xml
+      run: npm test -- --reporters=default --reporters=jest-junit
+      continue-on-error: true
+
+    - name: Generate HTML Report
+      run: |
+        # Generate the report using the script
+        node packages/xq-scripts/scripts/generate-report.js \
+          --xml junit.xml \
+          --output index.html 
+        
+        # Note: We name it index.html so it loads automatically on Pages
+
+    - name: Upload Report Artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: . # Upload current dir (containing index.html) or specify a folder
+        # Careful: uploading root (.) might be too much. 
+        # Better to move index.html to a 'public' folder and upload that.
+
+    - name: Prepare Pages Artifact
+      run: |
+        mkdir public
+        mv index.html public/
+    
+    - name: Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: public
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: test-and-build-report
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+      - name: Print Page URL
+        run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"
