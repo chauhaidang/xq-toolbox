@@ -20,7 +20,7 @@ try {
     // Read the template HTML
     // Assuming this script is run from project root or we can find the reporter package
     // Adjust path finding logic as needed. Here we assume standard monorepo structure.
-    const reporterPath = path.resolve(__dirname, '../../xq-test-reporter/index.html');
+    const reporterPath = path.resolve(__dirname, 'report-template.html');
 
     if (!fs.existsSync(reporterPath)) {
         throw new Error(`Reporter template not found at ${reporterPath}`);
