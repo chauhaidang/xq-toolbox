@@ -1,6 +1,6 @@
 {
   "name": "@chauhaidang/xq-test-utils",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Test utilities for XQ component and integration tests (database helper, wait-for-service)",
   "main": "dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,7 +10,12 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "jest.component.config.js", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "jest.component.config.js",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -26,10 +31,19 @@
     "url": "git+https://github.com/chauhaidang/xq-toolbox.git",
     "directory": "packages/xq-test-utils"
   },
-  "keywords": ["xq", "typescript", "testing", "database", "postgres", "wait-on"],
+  "keywords": [
+    "xq",
+    "typescript",
+    "testing",
+    "database",
+    "postgres",
+    "wait-on"
+  ],
   "author": "chauhaidang",
   "license": "Apache-2.0",
-  "bugs": {"url": "https://github.com/chauhaidang/xq-toolbox/issues"},
+  "bugs": {
+    "url": "https://github.com/chauhaidang/xq-toolbox/issues"
+  },
   "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
   "dependencies": {
     "@chauhaidang/xq-common-kit": "^1.0.12",

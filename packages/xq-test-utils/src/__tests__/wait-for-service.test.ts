@@ -2,7 +2,7 @@
  * Unit tests for waitForService
  */
 
-import { waitForService } from '../wait-for-service';
+import { waitForService } from '../service-readiness/wait-for-service';
 
 describe('waitForService', () => {
   it('rejects when URL is unreachable within timeout', async () => {
