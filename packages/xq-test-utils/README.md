@@ -6,13 +6,12 @@ Test utilities for XQ component and integration tests: PostgreSQL database helpe
 
 ## Overview
 
-This package provides:
+This package is structured into several core modules to provide organized test utilities:
 
-- **DatabaseHelper** – PostgreSQL connection pool, health checks, and schema verification for component tests that need direct database access.
-- **waitForService** – Poll a URL (e.g. health check) until it becomes available, with configurable timeout and interval.
-- **generateTestReport** – Read JUnit XML, convert to markdown (via xq-common-kit), optionally append extra markdown, and write a report file (e.g. for Jest global teardown).
-
-Service-specific helpers (e.g. test-data generators, API client wrappers, cleanup trackers) remain in the services that use them (e.g. write-service).
+-   **Database** – Robust MongoDB and PostgreSQL connection helpers, schema verification, and state management for integration tests.
+-   **Service Readiness** – Utilities to wait for external services to become available before starting tests.
+-   **Reporting** – Tools to generate markdown test reports from JUnit XML results.
+-   **Test Config** – Reusable Jest configuration factories for component and integration tests.
 
 ---
 
@@ -34,12 +33,12 @@ For use from the xq-toolbox monorepo, link the workspace package:
 
 ## Usage
 
-### DatabaseHelper
+### Database (PostgreSQL)
 
 ```typescript
-import { DatabaseHelper } from '@chauhaidang/xq-test-utils';
+import { createDatabaseHelper } from '@chauhaidang/xq-test-utils';
 
-const db = new DatabaseHelper();
+const db = createDatabaseHelper();
 await db.connect();
 
 const healthy = await db.healthCheck(['my_table']);
@@ -49,9 +48,9 @@ const result = await db.query('SELECT * FROM my_table WHERE id = $1', [1]);
 await db.disconnect();
 ```
 
-Configuration is read from the environment (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`) or you can pass a `DatabaseConfig` object to the constructor.
+Configuration is read from the environment (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`) or you can pass a `DatabaseConfig` object to any of the database helpers or the factory.
 
-### waitForService
+### Service Readiness
 
 ```typescript
 import { waitForService } from '@chauhaidang/xq-test-utils';
@@ -63,7 +62,7 @@ await waitForService('http://localhost:8080/health', {
 });
 ```
 
-### generateTestReport
+### Reporting
 
 ```typescript
 import { generateTestReport } from '@chauhaidang/xq-test-utils';
@@ -80,20 +79,29 @@ await generateTestReport({
 
 ## API
 
-- **DatabaseHelper** – `connect()`, `disconnect()`, `query()`, `getClient()`, `checkConnection()`, `verifySchema()`, `verifySnapshotSchema()`, `healthCheck()`.
-- **DatabaseConfig** – Optional config (host, port, database, user, password, ssl, etc.).
-- **waitForService(healthUrl, options?)** – Returns a Promise that resolves when the URL is reachable; rejects on timeout.
-- **WaitForServiceOptions** – `timeout` (ms), `interval` (ms).
-- **generateTestReport(options)** – Async. Reads `junitXmlPath`, converts to markdown, optionally appends `appendMarkdown`, writes to `reportMdPath`.
-- **GenerateTestReportOptions** – `junitXmlPath`, `reportMdPath`, `appendMarkdown?`.
+### Database Module
+-   `createDatabaseHelper(config?)` – Factory function to create a database helper instance.
+-   `PostgresDatabaseHelper` – PostgreSQL implementation of `IDatabaseHelper`.
+-   `DatabaseHelper` – Alias for `PostgresDatabaseHelper` (for backward compatibility).
+-   `DatabaseConfig` – Configuration interface (host, port, database, user, password, ssl, etc.).
 
-### Jest component test config (Option B – config factory)
+### Service Readiness Module
+-   `waitForService(healthUrl, options?)` – Returns a Promise that resolves when the URL is reachable; rejects on timeout.
+-   `WaitForServiceOptions` – `timeout` (ms), `interval` (ms).
 
-Use the shared Jest config factory so path-specific options stay in your project:
+### Reporting Module
+-   `generateTestReport(options)` – Async function that reads JUnit XML and writes a markdown report.
+-   `JunitMarkdownReporter` – The underlying class used for report generation.
+-   `GenerateTestReportOptions` – `junitXmlPath`, `reportMdPath`, `appendMarkdown?`.
+
+### Test Config Module
+-   `getComponentTestConfig(options)` – Generates a standardized Jest configuration for component tests.
+
+#### Jest component test config example
 
 ```javascript
 // jest.config.component.js (in your service)
-const getComponentTestConfig = require('@chauhaidang/xq-test-utils/jest.component.config');
+const { getComponentTestConfig } = require('@chauhaidang/xq-test-utils');
 
 module.exports = getComponentTestConfig({
   rootDir: './',
