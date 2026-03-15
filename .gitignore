@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 packages/detox-dummy
 packages/poc
 python-in-a-week
+python-practice
