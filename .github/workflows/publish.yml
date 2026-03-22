@@ -34,12 +34,12 @@ jobs:
         run: |
           git fetch --no-tags --prune || true
           node scripts/check-version-changes.js
-      - name: Run tests
-        run: npm test
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build
         run: npm run build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: npm test
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
