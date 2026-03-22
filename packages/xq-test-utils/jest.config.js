@@ -9,5 +9,8 @@ module.exports = {
     '!src/**/__tests__/**',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  moduleNameMapper: {
+    '^@chauhaidang/(.*)$': '<rootDir>/../$1/src',
+  },
   forceExit: true,
 };
