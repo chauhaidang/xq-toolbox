@@ -1,7 +1,7 @@
 {
   "name": "@chauhaidang/xq-test-utils",
-  "version": "1.1.0",
-  "description": "Test utilities for XQ component and integration tests (database helper, wait-for-service)",
+  "version": "1.2.0",
+  "description": "Test utilities for XQ applications: component/integration helpers and Detox E2E abstractions",
   "main": "dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -13,6 +13,7 @@
   "files": [
     "dist",
     "jest.component.config.js",
+    "skills",
     "README.md",
     "LICENSE"
   ],
@@ -37,7 +38,10 @@
     "testing",
     "database",
     "postgres",
-    "wait-on"
+    "wait-on",
+    "detox",
+    "e2e",
+    "mobile"
   ],
   "author": "chauhaidang",
   "license": "Apache-2.0",
@@ -49,6 +53,14 @@
     "@chauhaidang/xq-common-kit": "workspace:*",
     "pg": "^8.16.3",
     "wait-on": "^8.0.1"
+  },
+  "peerDependencies": {
+    "detox": ">=20.0.0"
+  },
+  "peerDependenciesMeta": {
+    "detox": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

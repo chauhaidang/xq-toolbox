@@ -63,6 +63,7 @@ describe('PostgresDatabaseHelper', () => {
             mockQuery.mockResolvedValue({ rows: [{ current_time: 'now' }] });
             await db.connect();
 
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             const { logger } = require('@chauhaidang/xq-common-kit');
             await db.connect();
 

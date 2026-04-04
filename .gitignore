@@ -1,3 +1,6 @@
+# Task (taskfile.dev) checksum cache
+.task/
+
 # Logs
 logs
 *.log
