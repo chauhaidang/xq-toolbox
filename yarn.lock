@@ -436,6 +436,11 @@ __metadata:
     ts-jest: "npm:^29.2.0"
     typescript: "npm:^5.9.3"
     wait-on: "npm:^8.0.1"
+  peerDependencies:
+    detox: ">=20.0.0"
+  peerDependenciesMeta:
+    detox:
+      optional: true
   languageName: unknown
   linkType: soft
 
