@@ -1,5 +1,5 @@
 const { Pool } = require('pg')
-const { logger } = require('@chauhaidang/xq-js-common-kit')
+const { logger } = require('@chauhaidang/xq-common-kit')
 
 class DatabaseConnection {
   constructor() {

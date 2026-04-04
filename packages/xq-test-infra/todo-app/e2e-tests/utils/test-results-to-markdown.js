@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs')
-const { generateMarkdownFromJunit } = require('@chauhaidang/xq-js-common-kit')
+const { generateMarkdownFromJunit } = require('@chauhaidang/xq-common-kit')
 async function main() {
   const args = process.argv.slice(2)
 
