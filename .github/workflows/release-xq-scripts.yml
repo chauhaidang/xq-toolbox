@@ -15,71 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read VERSION
-        id: version
-        run: |
-          VERSION=$(cat packages/xq-scripts/VERSION | tr -d '[:space:]')
-          if [[ -z "$VERSION" ]]; then
-            echo "Error: packages/xq-scripts/VERSION is empty" >&2
-            exit 1
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=xq-scripts/v${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Enable corepack
+        run: corepack enable
 
-      - name: Check for existing release
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release xq-scripts
+        run: task release:xq-scripts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
-            echo "Error: Release '$TAG' already exists. Bump the VERSION file to release a new version." >&2
-            exit 1
-          fi
-          echo "No existing release found for '$TAG'. Proceeding."
-
-      - name: Build tarball
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          ARCHIVE="xq-scripts-v${VERSION}.tar.gz"
-          tar -czf "$ARCHIVE" \
-            --transform "s|^packages/xq-scripts|xq-scripts-v${VERSION}|" \
-            packages/xq-scripts
-          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
-
-      - name: Generate release notes
-        id: notes
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          TAG="${{ steps.version.outputs.tag }}"
-
-          # Find the previous xq-scripts release tag
-          PREV_TAG=$(git tag --list 'xq-scripts/v*' --sort=-version:refname | head -n 1)
-
-          if [[ -n "$PREV_TAG" ]]; then
-            echo "Generating notes from $PREV_TAG to HEAD (scoped to packages/xq-scripts/)"
-            NOTES=$(git log "${PREV_TAG}..HEAD" --oneline -- packages/xq-scripts/ \
-              | sed 's/^/- /')
-          else
-            echo "No previous tag found — listing all commits scoped to packages/xq-scripts/"
-            NOTES=$(git log --oneline -- packages/xq-scripts/ \
-              | sed 's/^/- /')
-          fi
-
-          if [[ -z "$NOTES" ]]; then
-            NOTES="- Initial release"
-          fi
-
-          # Write notes to a tmp file to avoid quoting issues
-          echo "$NOTES" > /tmp/release-notes.md
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          VERSION="${{ steps.version.outputs.version }}"
-          gh release create "$TAG" \
-            --repo "${{ github.repository }}" \
-            --title "xq-scripts v${VERSION}" \
-            --notes-file /tmp/release-notes.md \
-            "${{ env.ARCHIVE }}"

@@ -21,11 +21,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "25"
-          cache: "npm"
+          cache: "yarn"
           registry-url: "https://npm.pkg.github.com"
           scope: "@chauhaidang"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install dependencies
-        run: npm ci
+        run: yarn install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check if any package.json version changed
@@ -35,11 +42,11 @@ jobs:
           git fetch --no-tags --prune || true
           node scripts/check-version-changes.js
       - name: Build
-        run: npm run build
+        run: task build
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run tests
-        run: npm test
+        run: task test
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,22 +65,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+          cache: "yarn"
           registry-url: ${{ secrets.NPM_REGISTRY_URL || 'https://npm.pkg.github.com' }}
-          cache: "npm"
           scope: "@chauhaidang"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install dependencies
-        run: npm ci
+        run: yarn install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build packages
-        run: npm run build
+        run: task build
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Authenticate to GitHub Packages
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
       - name: Publish changed packages
         if: needs.build.outputs.version_changed == 'true'
         env:
@@ -85,7 +94,7 @@ jobs:
             for PKG in $CHANGED_ARRAY; do
               if [ -d "packages/$PKG" ] && [ -f "packages/$PKG/package.json" ]; then
                 echo "Publishing package: $PKG"
-                (cd "packages/$PKG" && npm publish) || echo "Failed to publish package: $PKG"
+                (cd "packages/$PKG" && yarn npm publish) || echo "Failed to publish package: $PKG"
               fi
             done
           fi
@@ -94,10 +103,4 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for PKG_DIR in packages/*/; do
-            if [ -f "${PKG_DIR}package.json" ]; then
-              PKG_NAME=$(basename "$PKG_DIR")
-              echo "Publishing package: $PKG_NAME"
-              (cd "$PKG_DIR" && npm publish) || echo "Failed to publish package: $PKG_NAME"
-            fi
-          done
+          yarn workspaces foreach -A --no-private npm publish

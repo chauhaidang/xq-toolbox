@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
   "dependencies": {
-    "@chauhaidang/xq-common-kit": "1.0.12",
+    "@chauhaidang/xq-common-kit": "workspace:*",
     "commander": "^11.0.0",
     "cross-spawn": "7.0.6",
     "fs-extra": "^11.1.1",

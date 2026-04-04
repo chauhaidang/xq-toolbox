@@ -46,15 +46,15 @@
   },
   "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
   "dependencies": {
-    "@chauhaidang/xq-common-kit": "1.0.12",
+    "@chauhaidang/xq-common-kit": "workspace:*",
     "pg": "^8.16.3",
     "wait-on": "^8.0.1"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.16.0",
     "@types/wait-on": "^5.3.4",
-    "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^8.50.0",

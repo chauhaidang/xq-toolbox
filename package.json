@@ -7,10 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "build": "yarn workspaces foreach -A --topological-dev --no-private run build",
+    "test": "yarn workspaces foreach -A --no-private run test",
+    "lint": "yarn workspaces foreach -A --no-private run lint",
+    "clean": "yarn workspaces foreach -A --no-private run clean && rm -rf node_modules",
     "typecheck": "tsc --build"
   },
   "repository": {
@@ -35,6 +35,7 @@
   },
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  }
+    "yarn": ">=4.0.0"
+  },
+  "packageManager": "yarn@4.13.0"
 }

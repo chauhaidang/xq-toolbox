@@ -1,0 +1,217 @@
+version: "3"
+
+# ──────────────────────────────────────────────
+# Workspace aggregates
+# Run these from the repo root for full-monorepo operations.
+# ──────────────────────────────────────────────
+tasks:
+  install:
+    desc: Install all workspace dependencies
+    cmd: yarn install
+
+  build:
+    desc: Build all packages (respects inter-package dependency order)
+    deps:
+      - build:xq-test-utils
+      - build:xq-test-infra
+
+  test:
+    desc: Run tests for all packages
+    deps:
+      - test:xq-common-kit
+      - test:xq-test-utils
+      - test:xq-test-infra
+
+  lint:
+    desc: Lint all packages
+    deps:
+      - lint:xq-common-kit
+      - lint:xq-test-utils
+      - lint:xq-test-infra
+
+  clean:
+    desc: Clean build artifacts and root node_modules
+    deps:
+      - clean:xq-common-kit
+      - clean:xq-test-utils
+      - clean:xq-test-infra
+    cmds:
+      - rm -rf node_modules
+
+  typecheck:
+    desc: Type-check the entire monorepo (tsc --build)
+    cmd: tsc --build
+
+  check-versions:
+    desc: Detect which packages have version bumps (used by CI)
+    cmd: node scripts/check-version-changes.js
+
+  # ──────────────────────────────────────────────
+  # xq-common-kit
+  # ──────────────────────────────────────────────
+  build:xq-common-kit:
+    desc: Build xq-common-kit
+    run: once
+    dir: packages/xq-common-kit
+    sources:
+      - src/**/*.ts
+      - tsconfig.json
+      - package.json
+    generates:
+      - dist/**
+    cmd: yarn build
+
+  test:xq-common-kit:
+    desc: Test xq-common-kit
+    dir: packages/xq-common-kit
+    cmd: yarn test
+
+  lint:xq-common-kit:
+    desc: Lint xq-common-kit
+    dir: packages/xq-common-kit
+    cmd: yarn lint
+
+  clean:xq-common-kit:
+    desc: Clean xq-common-kit build artifacts
+    dir: packages/xq-common-kit
+    cmd: yarn clean
+
+  # ──────────────────────────────────────────────
+  # xq-test-utils
+  # ──────────────────────────────────────────────
+  build:xq-test-utils:
+    desc: Build xq-test-utils (requires xq-common-kit)
+    deps:
+      - build:xq-common-kit
+    dir: packages/xq-test-utils
+    sources:
+      - src/**/*.ts
+      - tsconfig.json
+      - package.json
+    generates:
+      - dist/**
+    cmd: yarn build
+
+  test:xq-test-utils:
+    desc: Test xq-test-utils
+    deps:
+      - build:xq-test-utils
+    dir: packages/xq-test-utils
+    cmd: yarn test
+
+  lint:xq-test-utils:
+    desc: Lint xq-test-utils
+    dir: packages/xq-test-utils
+    cmd: yarn lint
+
+  clean:xq-test-utils:
+    desc: Clean xq-test-utils build artifacts
+    dir: packages/xq-test-utils
+    cmd: yarn clean
+
+  # ──────────────────────────────────────────────
+  # xq-test-infra
+  # ──────────────────────────────────────────────
+  build:xq-test-infra:
+    desc: Build xq-test-infra (syntax check + tests)
+    deps:
+      - build:xq-common-kit
+    dir: packages/xq-test-infra
+    sources:
+      - src/**/*.js
+      - bin/**/*.js
+    cmd: yarn build
+
+  test:xq-test-infra:
+    desc: Test xq-test-infra
+    dir: packages/xq-test-infra
+    cmd: yarn test
+
+  lint:xq-test-infra:
+    desc: Lint xq-test-infra
+    dir: packages/xq-test-infra
+    cmd: yarn lint
+
+  clean:xq-test-infra:
+    desc: Remove xq-test-infra coverage output
+    dir: packages/xq-test-infra
+    cmd: rm -rf coverage
+
+  # ──────────────────────────────────────────────
+  # Release — xq-scripts
+  # Equivalent of .github/workflows/release-xq-scripts.yml
+  # Requires GH_TOKEN to be set in the environment.
+  # ──────────────────────────────────────────────
+  release:xq-scripts:
+    desc: Build and publish a GitHub Release for xq-scripts
+    requires:
+      vars:
+        - GH_TOKEN
+    vars:
+      VERSION:
+        sh: cat packages/xq-scripts/VERSION | tr -d '[:space:]'
+      TAG: "xq-scripts/v{{.VERSION}}"
+      ARCHIVE: "xq-scripts-v{{.VERSION}}.tar.gz"
+    cmds:
+      - |
+        if [ -z "{{.VERSION}}" ]; then
+          echo "Error: packages/xq-scripts/VERSION is empty" >&2
+          exit 1
+        fi
+      - |
+        if gh release view "{{.TAG}}" --repo "$(gh repo view --json nameWithOwner -q .nameWithOwner)" > /dev/null 2>&1; then
+          echo "Error: Release '{{.TAG}}' already exists. Bump VERSION to release a new version." >&2
+          exit 1
+        fi
+      - |
+        tar -czf "{{.ARCHIVE}}" \
+          --transform "s|^packages/xq-scripts|xq-scripts-v{{.VERSION}}|" \
+          packages/xq-scripts
+      - |
+        PREV_TAG=$(git tag --list 'xq-scripts/v*' --sort=-version:refname | head -n 1)
+        if [ -n "$PREV_TAG" ]; then
+          NOTES=$(git log "${PREV_TAG}..HEAD" --oneline -- packages/xq-scripts/ | sed 's/^/- /')
+        else
+          NOTES=$(git log --oneline -- packages/xq-scripts/ | sed 's/^/- /')
+        fi
+        [ -z "$NOTES" ] && NOTES="- Initial release"
+        echo "$NOTES" > /tmp/release-notes.md
+      - |
+        REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+        gh release create "{{.TAG}}" \
+          --repo "$REPO" \
+          --title "xq-scripts v{{.VERSION}}" \
+          --notes-file /tmp/release-notes.md \
+          "{{.ARCHIVE}}"
+      - rm -f "{{.ARCHIVE}}"
+
+  # ──────────────────────────────────────────────
+  # Future language support (templates for reference)
+  #
+  # Python/uv package:
+  #   build:my-python-pkg:
+  #     desc: Build my-python-pkg
+  #     dir: packages/my-python-pkg
+  #     cmd: uv build
+  #
+  #   test:my-python-pkg:
+  #     desc: Test my-python-pkg
+  #     dir: packages/my-python-pkg
+  #     cmd: uv run pytest
+  #
+  #   lint:my-python-pkg:
+  #     desc: Lint my-python-pkg
+  #     dir: packages/my-python-pkg
+  #     cmd: uv run ruff check
+  #
+  # Go package:
+  #   build:my-go-tool:
+  #     desc: Build my-go-tool
+  #     dir: packages/my-go-tool
+  #     cmd: go build ./...
+  #
+  #   test:my-go-tool:
+  #     desc: Test my-go-tool
+  #     dir: packages/my-go-tool
+  #     cmd: go test ./...
+  # ──────────────────────────────────────────────

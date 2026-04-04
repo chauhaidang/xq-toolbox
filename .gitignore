@@ -125,7 +125,7 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# yarn v3
+# Yarn Berry v4 (node-modules linker — no zero-installs)
 .pnp.*
 .yarn/*
 !.yarn/patches
