@@ -36,11 +36,14 @@ if (!projectRoot) {
   process.exit(0);
 }
 
-// Opt-in only: exit silently if the consumer has no .agents/ directory.
-const agentsSkillsDir = path.join(projectRoot, '.agents', 'skills');
-if (!fs.existsSync(path.join(projectRoot, '.agents'))) {
+// Opt-in only: exit silently if the consumer has no .agents/ or .agent/ directory.
+const agentsDirName = fs.existsSync(path.join(projectRoot, '.agents')) ? '.agents'
+  : fs.existsSync(path.join(projectRoot, '.agent')) ? '.agent'
+    : null;
+if (!agentsDirName) {
   process.exit(0);
 }
+const agentsSkillsDir = path.join(projectRoot, agentsDirName, 'skills');
 
 // ─── Copy helper ─────────────────────────────────────────────────────────────
 
