@@ -1,6 +1,6 @@
 {
   "name": "@chauhaidang/xq-test-utils",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Test utilities for XQ applications: component/integration helpers and Detox E2E abstractions",
   "main": "dist/index.js",
   "types": "./dist/index.d.ts",

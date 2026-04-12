@@ -15,6 +15,11 @@ describe('createDetoxConfig', () => {
     expect(config.devices.simulator.device.type).toBe('iPhone 15');
   });
 
+  it('overrides the simulator device type when simulator option is provided', () => {
+    const config = createDetoxConfig(BINARY, { simulator: 'iPhone 16 Pro' }) as any;
+    expect(config.devices.simulator.device.type).toBe('iPhone 16 Pro');
+  });
+
   it('creates an ios.sim.release configuration', () => {
     const config = createDetoxConfig(BINARY) as any;
     expect(config.configurations['ios.sim.release']).toEqual({

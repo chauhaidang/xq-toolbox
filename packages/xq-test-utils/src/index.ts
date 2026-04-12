@@ -20,7 +20,7 @@ export type { ComponentTestConfigOptions } from './test-config';
 
 // E2E (Detox) — iOS simulator helpers
 export { createDetoxConfig, createE2eJestConfig } from './e2e/config';
-export type { E2eJestConfigOptions } from './e2e/config';
+export type { DetoxConfigOptions, E2eJestConfigOptions } from './e2e/config';
 
 export { App } from './e2e/app';
 export type { LaunchOptions } from './e2e/app';

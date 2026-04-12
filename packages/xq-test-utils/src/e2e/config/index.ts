@@ -7,6 +7,15 @@ const DEFAULT_SETUP_TIMEOUT = 120_000;
 const DEFAULT_TEARDOWN_TIMEOUT = 30_000;
 const DEFAULT_TEST_TIMEOUT = 120_000;
 
+export interface DetoxConfigOptions {
+  /**
+   * iOS simulator device type to target.
+   * @default 'iPhone 15'
+   * @example 'iPhone 16 Pro'
+   */
+  simulator?: string;
+}
+
 /**
  * Creates a Detox configuration for iOS simulator (release build).
  * The consumer only needs to supply the compiled app binary path — everything
@@ -15,14 +24,18 @@ const DEFAULT_TEST_TIMEOUT = 120_000;
  *
  * @param binaryPath - Path to the compiled .app bundle, relative to the project root.
  *   Example: 'ios/build/Build/Products/Release-iphonesimulator/MyApp.app'
+ * @param options - Optional overrides for device and runner defaults.
  *
  * @example
  * // .detoxrc.js
  * const { createDetoxConfig } = require('@chauhaidang/xq-test-utils');
- * module.exports = createDetoxConfig('ios/build/Release-iphonesimulator/MyApp.app');
+ * module.exports = createDetoxConfig('ios/build/Release-iphonesimulator/MyApp.app', {
+ *   simulator: 'iPhone 16 Pro',
+ * });
  */
-export function createDetoxConfig(binaryPath: string): object {
-  logger.debug('[xq-test-utils] Creating Detox config', { binaryPath });
+export function createDetoxConfig(binaryPath: string, options: DetoxConfigOptions = {}): object {
+  const { simulator = DEFAULT_SIMULATOR } = options;
+  logger.debug('[xq-test-utils] Creating Detox config', { binaryPath, simulator });
 
   return {
     testRunner: {
@@ -41,7 +54,7 @@ export function createDetoxConfig(binaryPath: string): object {
     devices: {
       simulator: {
         type: 'ios.simulator',
-        device: { type: DEFAULT_SIMULATOR },
+        device: { type: simulator },
       },
     },
     configurations: {
@@ -56,7 +69,7 @@ export function createDetoxConfig(binaryPath: string): object {
 export interface E2eJestConfigOptions {
   /**
    * Glob patterns matching your e2e test files.
-   * @default ['<rootDir>/e2e/**\/*.e2e.ts']
+   * @default ['<rootDir>/**\/*.e2e.ts']
    */
   testMatch?: string[];
   /**
@@ -84,7 +97,7 @@ export interface E2eJestConfigOptions {
  */
 export function createE2eJestConfig(options: E2eJestConfigOptions = {}): Config {
   const {
-    testMatch = ['<rootDir>/e2e/**/*.e2e.ts'],
+    testMatch = ['<rootDir>/**/*.e2e.ts'],
     setupFilePath,
     testTimeout = DEFAULT_TEST_TIMEOUT,
     displayName = 'E2E Tests',
