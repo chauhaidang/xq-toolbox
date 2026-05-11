@@ -14,6 +14,7 @@ tasks:
     deps:
       - build:xq-test-utils
       - build:xq-test-infra
+      - build:xq-runner
 
   test:
     desc: Run tests for all packages
@@ -21,6 +22,7 @@ tasks:
       - test:xq-common-kit
       - test:xq-test-utils
       - test:xq-test-infra
+      - test:xq-runner
 
   lint:
     desc: Lint all packages
@@ -28,6 +30,7 @@ tasks:
       - lint:xq-common-kit
       - lint:xq-test-utils
       - lint:xq-test-infra
+      - lint:xq-runner
 
   clean:
     desc: Clean build artifacts and root node_modules
@@ -35,6 +38,7 @@ tasks:
       - clean:xq-common-kit
       - clean:xq-test-utils
       - clean:xq-test-infra
+      - clean:xq-runner
     cmds:
       - rm -rf node_modules
 
@@ -184,6 +188,36 @@ tasks:
           --notes-file /tmp/release-notes.md \
           "{{.ARCHIVE}}"
       - rm -f "{{.ARCHIVE}}"
+
+  # ──────────────────────────────────────────────
+  # xq-runner
+  # ──────────────────────────────────────────────
+  build:xq-runner:
+    desc: Build xq-runner package
+    run: once
+    dir: packages/xq-runner
+    sources:
+      - src/**/*.ts
+      - tsconfig.json
+      - package.json
+    generates:
+      - dist/**
+    cmd: yarn build
+
+  test:xq-runner:
+    desc: Test xq-runner package
+    dir: packages/xq-runner
+    cmd: yarn test
+
+  lint:xq-runner:
+    desc: Lint xq-runner package
+    dir: packages/xq-runner
+    cmd: yarn lint
+
+  clean:xq-runner:
+    desc: Clean xq-runner build artifacts
+    dir: packages/xq-runner
+    cmd: yarn clean
 
   # ──────────────────────────────────────────────
   # Future language support (templates for reference)
