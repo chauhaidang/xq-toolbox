@@ -1,0 +1,19 @@
+{
+  "name": "@chauhaidang/xq-test-harness-e2e-consumer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Private workspace: exercises @chauhaidang/xq-test-harness like an external consumer (single harness dependency)",
+  "scripts": {
+    "test:bdd": "../../node_modules/.bin/bddgen -c playwright.config.ts && ../../node_modules/.bin/playwright test -c playwright.config.ts",
+    "lint": "eslint . --ext .ts",
+    "clean": "rm -rf .features-gen test-results playwright-report"
+  },
+  "devDependencies": {
+    "@chauhaidang/xq-test-harness": "workspace:*",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "^5.9.3"
+  }
+}

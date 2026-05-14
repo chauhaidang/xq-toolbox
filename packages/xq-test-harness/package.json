@@ -1,0 +1,70 @@
+{
+  "name": "@chauhaidang/xq-test-harness",
+  "version": "0.1.0",
+  "description": "Playwright API + Gherkin (playwright-bdd) harness for backend black-box tests",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "default": "./dist/config.js"
+    },
+    "./advanced": {
+      "types": "./dist/advanced.d.ts",
+      "default": "./dist/advanced.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "docs",
+    "skills"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "bddgen": "yarn exec bddgen -c playwright.config.ts",
+    "test": "yarn build && yarn exec bddgen -c playwright.config.ts && yarn exec playwright test -c playwright.config.ts",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "clean": "rm -rf dist .features-gen test-results playwright-report"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chauhaidang/xq-toolbox.git",
+    "directory": "packages/xq-test-harness"
+  },
+  "keywords": [
+    "xq",
+    "playwright",
+    "bdd",
+    "gherkin",
+    "api",
+    "testing"
+  ],
+  "author": "chauhaidang",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/chauhaidang/xq-toolbox/issues"
+  },
+  "homepage": "https://github.com/chauhaidang/xq-toolbox#readme",
+  "dependencies": {
+    "@playwright/test": "^1.60.0",
+    "playwright-bdd": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "^5.9.3"
+  }
+}

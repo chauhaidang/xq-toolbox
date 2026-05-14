@@ -1,21 +1,26 @@
 # Setup Guide
 
+This repository standard is **Yarn 4 (Berry)** and **Task** for installs and cross-package builds. Prefer `task install`, `task build`, and `task test` from the repo root (see [CLAUDE.md](CLAUDE.md)). The `npm` commands below are generic equivalents if you are not using Task.
+
 ## Initial Setup
 
 1. **Install dependencies:**
    ```bash
-   npm install
+   task install
    ```
+   or: `yarn install`
 
 2. **Build all packages:**
    ```bash
-   npm run build
+   task build
    ```
+   or: `yarn build`
 
 3. **Run tests:**
    ```bash
-   npm test
+   task test
    ```
+   or: `yarn test`
 
 ## Creating a New Package
 
@@ -72,7 +77,7 @@
    }
    ```
 
-5. **Reference `packages/example-package` for a complete example**
+5. **Use an existing package (e.g. `packages/xq-common-kit`) as a template** for `package.json`, `tsconfig.json`, and Taskfile tasks.
 
 ## Publishing
 
@@ -96,8 +101,8 @@ To publish a package:
 
 ## Development Tips
 
-- Use `npm run typecheck` to check types across all packages
+- Use `task typecheck` or `yarn typecheck` to check types across all packages
 - Each package can have its own dependencies
 - Shared dev dependencies go in the root `package.json`
-- Use `npm run build` from root to build all packages
-- Use `npm run build` from a package directory to build just that package
+- Use `task build` from root to build all packages (respects dependency order)
+- Use `yarn build` from a package directory to build just that package
