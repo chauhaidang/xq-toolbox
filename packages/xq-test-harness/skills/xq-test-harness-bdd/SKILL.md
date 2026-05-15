@@ -54,8 +54,8 @@ your-repo/
 ├── .npmrc
 ├── .vscode/
 │   └── settings.json          # see section 4
-├── playwright.config.ts
 ├── bdd-world.ts               # re-export test/expect for bddgen
+├── playwright.config.ts       # defineApiHarnessConfig + importTestFrom
 ├── features/
 │   └── *.feature
 ├── steps/
@@ -122,21 +122,15 @@ Adjust the Cucumber extension id if your team standardizes on a different market
 
 ---
 
-## 5. `bdd-world.ts`
+## 5. `bdd-world.ts` and `playwright.config.ts`
 
-Next to `playwright.config.ts`:
+**`bdd-world.ts`** (repo root next to config):
 
 ```typescript
 export { test, expect } from "@chauhaidang/xq-test-harness";
 ```
 
-In **`defineApiHarnessConfig` → `bdd.importTestFrom`**, point at this file so **bddgen** emits tests that import the **same** `test` / `expect` as your step definitions (required for playwright-bdd + harness fixtures).
-
----
-
-## 6. `playwright.config.ts`
-
-Minimal pattern:
+**`playwright.config.ts`:**
 
 ```typescript
 import { defineApiHarnessConfig } from "@chauhaidang/xq-test-harness/config";
@@ -146,8 +140,8 @@ export default defineApiHarnessConfig({
     name: "bdd",
     features: "features/**/*.feature",
     steps: "steps/**/*.ts",
-    importTestFrom: "./bdd-world.ts",
     outputDir: ".features-gen",
+    importTestFrom: "./bdd-world.ts",
     disableWarnings: { importTestFrom: true },
   },
   use: {
@@ -156,13 +150,15 @@ export default defineApiHarnessConfig({
 });
 ```
 
+- **`importTestFrom`:** points **bddgen** at the same **`test`** instance your steps use (via **`bdd-world.ts`**).
 - **`use.baseURL`:** Playwright’s native **`request`** fixture uses this for relative URLs; set from env per environment.
-- **`xq`:** the harness exposes a reserved **`xq`** fixture (`XQFixture`, currently `{}`) for future XQ context; optional in step signatures.
-- **`webServer`:** add when you need a local HTTP mock or app under test (see harness package dogfood for an example).
+- **`xq`:** reserved **`xq`** fixture (`XQFixture`, currently `{}`) for future XQ context.
+- **`webServer`:** add when you need a local HTTP mock or app under test.
+- **Custom merged `test`:** export your extended or merged `test`/`expect` from **`bdd-world.ts`** instead (see [sdk-fixture.md](https://github.com/chauhaidang/xq-toolbox/blob/main/docs/sdk-fixture.md)).
 
 ---
 
-## 7. Step definitions (Tier A)
+## 6. Step definitions (Tier A)
 
 ```typescript
 import { When, Then, expect } from "@chauhaidang/xq-test-harness";
@@ -177,7 +173,7 @@ Imports must come from **`@chauhaidang/xq-test-harness`** for normal flows. **`@
 
 ---
 
-## 8. Scripts (`package.json`)
+## 7. Scripts (`package.json`)
 
 ```json
 {
@@ -192,25 +188,25 @@ Imports must come from **`@chauhaidang/xq-test-harness`** for normal flows. **`@
 
 ---
 
-## 9. CI
+## 8. CI
 
 - Set **`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`** on **`yarn install`** (and optionally on test) when you only use **`request`** (API-only) to avoid downloading browsers in CI.
 - Ensure **`NODE_AUTH_TOKEN`** (or `GITHUB_TOKEN` with `read:packages`) is available so `.npmrc` can authenticate to GitHub Packages.
 
 ---
 
-## 10. Verify
+## 9. Verify
 
 ```bash
 yarn install
 yarn test:bdd
 ```
 
-Expect **`bddgen`** to create **`.features-gen/`** and Playwright to run the **bdd** project. Fix **`importTestFrom`**, **`features`**, and **`steps`** globs first if generation or collection fails.
+Expect **`bddgen`** to create **`.features-gen/`** and Playwright to run the **bdd** project. Fix **`features`** and **`steps`** globs first if generation or collection fails.
 
 ---
 
-## 11. References (human docs)
+## 10. References (human docs)
 
 | Doc | Purpose |
 |-----|---------|
@@ -223,5 +219,5 @@ Expect **`bddgen`** to create **`.features-gen/`** and Playwright to run the **b
 ## Rules (agent)
 
 - Prefer **Tier A** imports from `@chauhaidang/xq-test-harness`; use **`/advanced`** only for merged custom `test` + **`createHarnessBdd`**.
-- Always wire **`bdd-world.ts`** + **`importTestFrom`** before debugging missing steps.
+- Add **`bdd-world.ts`** and **`bdd.importTestFrom: './bdd-world.ts'`** for every consumer; use a custom **`test`** export in **`bdd-world.ts`** only when merging fixtures.
 - Add **VS Code** step globs (section 4) whenever the user uses Cucumber autocomplete; without **`node_modules/.../dist/`** globs, cross-package navigation may be incomplete for the installed harness.

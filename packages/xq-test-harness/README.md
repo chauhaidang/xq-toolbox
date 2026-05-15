@@ -1,111 +1,183 @@
-# @chauhaidang/xq-test-harness
+# `@chauhaidang/xq-test-harness`
 
-Playwright **API testing** + **Gherkin** (via [`playwright-bdd`](https://github.com/vitalets/playwright-bdd)) for black-box backend tests. Tier A: import `When` / `Then` / `Given` / `Step` and the shared `test` / `expect` from this package only—`createBdd` is wired internally.
+Project overview and architecture for the XQ **Playwright API + Gherkin BDD** harness. The package wraps [`playwright-bdd`](https://github.com/vitalets/playwright-bdd) and [`@playwright/test`](https://playwright.dev) so backend black-box tests can use a single Yarn dependency, pre-bound step keywords, and a shared Playwright config helper.
 
-## Design decisions (ADR)
+**Using the harness in another repo?** See [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md) and the agent skill [skills/xq-test-harness-bdd/SKILL.md](skills/xq-test-harness-bdd/SKILL.md) (install, VS Code, CI, scripts).
+
+---
+
+## Goals
+
+| Goal | How the harness addresses it |
+|------|------------------------------|
+| **API-first backend tests** | No browser channel by default; `request` is Playwright’s native fixture; `use.baseURL` in config drives relative URLs. |
+| **Gherkin without ceremony** | **Tier A:** one `test`, pre-bound `Given` / `When` / `Then` / `Step`; consumers do not call `createBdd` in normal flows. |
+| **Single consumer dependency** | `@playwright/test` and `playwright-bdd` are **bundled** as runtime `dependencies` (not peers). |
+| **Room for XQ-specific context** | Reserved **`xq`** fixture (`XQFixture`, currently `{}`) for future shared clients, auth, or tracing. |
+| **Escape hatch** | `./advanced` exports `mergeTests` and `createHarnessBdd` for custom `test.extend` / merged fixtures. |
+
+**Out of scope (today):** shipping generated OpenAPI clients, browser UI tests, or Python/Java harnesses (separate packages later).
+
+---
+
+## Architecture (high level)
+
+```mermaid
+flowchart TB
+  subgraph consumer [Consumer or dogfood repo]
+    features[Gherkin features]
+    steps[Step TS files]
+    bddWorld[bdd-world.ts]
+    cfgAuto[importTestFrom in config]
+    pwcfg[playwright.config.ts]
+  end
+  subgraph harness [Published harness]
+    main["@chauhaidang/xq-test-harness"]
+    cfg["/config"]
+    adv["/advanced"]
+    base[fixtures/base.ts]
+    bddBound[bdd-bound.ts]
+  end
+  subgraph deps [Bundled dependencies]
+    pw["@playwright/test"]
+    bddPkg["playwright-bdd"]
+  end
+  subgraph runtime [Test run]
+    bddgen[bddgen CLI]
+    gen[.features-gen]
+    pwRun[playwright test]
+  end
+  features --> bddgen
+  steps --> main
+  pwcfg --> cfg
+  bddWorld --> cfgAuto
+  cfgAuto --> bddgen
+  main --> base
+  main --> bddBound
+  bddPkg --> base
+  bddPkg --> bddBound
+  pw --> base
+  cfg --> pwcfg
+  cfgAuto --> bddgen
+  bddgen --> gen
+  gen --> pwRun
+  bddBound --> steps
+```
+
+**Execution path**
+
+1. Consumer **`playwright.config.ts`** calls **`defineApiHarnessConfig`** (`/config`) → registers a **bdd** project (via `defineBddProject`) and optional **contract** project.
+2. Consumer **`bdd-world.ts`** re-exports harness **`test`** / **`expect`**; **`playwright.config.ts`** sets **`bdd.importTestFrom: './bdd-world.ts'`** so **bddgen** generated specs use the same **`test`** as your steps.
+3. **`playwright test`** runs generated specs under `.features-gen` plus any plain Playwright specs in the **contract** project.
+
+---
+
+## Package layout
+
+```text
+packages/xq-test-harness/
+├── src/                          # Published library (tsc → dist/)
+│   ├── fixtures/base.ts          # Canonical test + xq fixture
+│   ├── bdd-bound.ts              # createBdd(test) once → Tier A keywords
+│   ├── index.ts                  # Entry "." 
+│   ├── config.ts                 # defineApiHarnessConfig, merge helper
+│   └── advanced.ts               # mergeTests, createHarnessBdd
+├── dist/                         # Build output (gitignored; npm "files")
+├── bdd-dogfood/                  # In-package BDD examples
+├── playwright.config.ts          # Dogfood + contract projects
+├── tests/                        # Contract tests (config merge)
+├── scripts/mock-http-server.mjs  # Dogfood webServer target
+├── docs/CONSUMER-GUIDE.md        # External consumer setup
+├── skills/xq-test-harness-bdd/   # Agent-oriented setup checklist
+├── TEST-PLAN.md                  # Manual / regression tiers
+└── CHANGELOG.md
+```
+
+Monorepo sibling: **`packages/xq-test-harness-e2e-consumer/`** (private) depends only on `workspace:*` harness and proves the single-dependency consumer story (mock on a different port than dogfood).
+
+---
+
+## Source modules
+
+### `src/fixtures/base.ts`
+
+- Extends **`playwright-bdd`’s `test`** (required so `createBdd` binds to the bdd runtime, not raw `@playwright/test`).
+- Adds **`xq: XQFixture`** — placeholder fixture for future XQ context; steps may include `{ xq }` for forward compatibility.
+- Re-exports **`expect`** from `@playwright/test`.
+- Does **not** override **`request`**; consumers set **`use.baseURL`** in config (e.g. from `process.env.BASE_URL`).
+
+### `src/bdd-bound.ts`
+
+- Calls **`createBdd(test)`** once against the canonical `test` from `base.ts`.
+- Re-exports **`Given`**, **`When`**, **`Then`**, **`Step`** for Tier A (playwright-bdd v8 has no separate `And` / `But` builders; Gherkin `And`/`But` in `.feature` files still work).
+
+### `src/index.ts` (export `"."`)
+
+- **`test`**, **`expect`**, Tier A BDD exports, type **`XQFixture`**.
+- Does **not** export `mergeTests` or raw `createBdd`.
+
+### `src/config.ts` (export `"./config"`)
+
+- **`mergeApiHarnessPlaywrightConfig`** — pure merge (used by contract tests and `defineApiHarnessConfig`).
+- **`defineApiHarnessConfig`** — `defineConfig` wrapper.
+- **`defineBddProject`** — re-export from `playwright-bdd`.
+**Project merge order:** optional **bdd** project → optional **contract** project (when `contractSpecs` set) → `options.projects` → `overrides.projects`. **`use`** is shallow-merged; **`overrides.use`** layers on top.
+
+### `src/advanced.ts` (export `"./advanced"`)
+
+- **`mergeTests`**, **`createHarnessBdd`** for consumers that extend or merge custom fixtures (see monorepo [docs/sdk-fixture.md](../../docs/sdk-fixture.md)).
+
+---
+
+## Design decisions
 
 | Topic | Decision |
 |--------|----------|
-| **Tier A** | One canonical `test` (playwright-bdd + reserved `xq` fixture). `Given` / `When` / `Then` / `Step` are pre-bound; consumers do not call `createBdd` for normal flows. Playwright’s native `request` is unchanged. |
-| **Advanced** | `@chauhaidang/xq-test-harness/advanced` exports `createHarnessBdd` and `mergeTests` for custom `test.extend` / merged fixtures. |
-| **Dependencies** | `@playwright/test` and `playwright-bdd` are **runtime `dependencies`** of this package (not peer dependencies). Consumers add **only** `@chauhaidang/xq-test-harness` for the harness stack. |
-| **Gherkin `And` / `But`** | Supported in `.feature` files by the runner; playwright-bdd v8 does not expose separate `And` / `But` step builders—use `When` / `Then` / `Given` in step files. |
-| **Versioning** | Package semver starts at `0.1.0`; bump on `main` to trigger GitHub Actions publish for this workspace (see [Publishing](#publishing)). |
+| **Tier A** | Single canonical `test`; pre-bound BDD keywords; no consumer `createBdd` in normal flows. |
+| **Dependencies** | Bundle `@playwright/test` + `playwright-bdd`; consumers install **only** this package for the stack. |
+| **`importTestFrom`** | Consumer sets **`bdd.importTestFrom`** to **`./bdd-world.ts`** (or a custom merged `test` module). |
+| **`request`** | Native Playwright fixture; configure via **`use.baseURL`** in `defineApiHarnessConfig`. |
+| **`xq`** | Reserved fixture; implementation deferred. |
+| **Gherkin And/But** | In features only; step files use `Given`/`When`/`Then`/`Step`. |
 
-## Install (consumer)
+---
 
-**One dev dependency** (GitHub Packages for `@chauhaidang`):
+## Public API (summary)
 
-```json
-{
-  "devDependencies": {
-    "@chauhaidang/xq-test-harness": "^0.1.0"
-  }
-}
-```
-
-`.npmrc` (consumer repo):
-
-```ini
-@chauhaidang:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-```
-
-You still need **TypeScript** (and usually `@types/node`) to author `playwright.config.ts` and step files—that is normal dev tooling, not the harness itself.
-
-### Scripts and CLIs
-
-After install, `bddgen` and `playwright` come in **transitively**. Prefer:
-
-```json
-{
-  "scripts": {
-    "test:bdd": "yarn exec bddgen -c playwright.config.ts && yarn exec playwright test -c playwright.config.ts"
-  }
-}
-```
-
-If `yarn exec` does not resolve a binary in your layout, call the copies under `node_modules/.bin/` or `node node_modules/playwright-bdd/dist/cli/index.js` as a fallback.
-
-### API-only CI / install
-
-Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` when installing or in CI if you only use `request` / API tests (smaller install). The monorepo publish workflow sets this for `yarn install`.
-
-## Quickstart (Tier A)
-
-1. `playwright.config.ts` — use `defineApiHarnessConfig` from `@chauhaidang/xq-test-harness/config` (see [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md)).
-2. `bdd-world.ts` — `export { test, expect } from '@chauhaidang/xq-test-harness';` and point playwright-bdd `importTestFrom` at this file.
-3. Step definitions — `import { When, Then, expect } from '@chauhaidang/xq-test-harness'`.
-4. Run `bddgen` then `playwright test`.
-
-Do **not** add `@playwright/test` or `playwright-bdd` as direct dependencies in the consumer app unless you accept duplicate installs and version skew.
-
-## Public API
-
-| Import | Contents |
-|--------|-----------|
-| `@chauhaidang/xq-test-harness` | `test`, `expect`, `Given`, `When`, `Then`, `Step`, type `XQFixture` |
+| Subpath | Role |
+|---------|------|
+| `@chauhaidang/xq-test-harness` | `test`, `expect`, `Given`, `When`, `Then`, `Step`, `XQFixture` |
 | `@chauhaidang/xq-test-harness/config` | `defineApiHarnessConfig`, `mergeApiHarnessPlaywrightConfig`, `defineBddProject` |
 | `@chauhaidang/xq-test-harness/advanced` | `mergeTests`, `createHarnessBdd` |
 
-### `defineApiHarnessConfig`
+Build: **`yarn build`** (`tsc` → `dist/`). Published **`files`**: `dist`, `README.md`, `CHANGELOG.md`, `LICENSE`, `docs`, `skills`.
 
-Merges:
+---
 
-- Optional **BDD** project via `defineBddProject` (`bdd` option).
-- Optional **`contract`** Playwright project when `contractSpecs` is set (default `contractTestDir`: `tests`).
-- **`use`**: shallow merge; `overrides.use` is merged on top.
-- **`projects`**: harness-built projects first, then `options.projects`, then `overrides.projects` (each appended in order).
+## Validation in xq-toolbox
 
-### `request` and `xq`
+| Layer | Location | Purpose |
+|-------|----------|---------|
+| **Contract** | `tests/*.contract.spec.ts` | Config merge behavior without full BDD run |
+| **Dogfood** | `bdd-dogfood/` + `playwright.config.ts` | Tier A steps against mock HTTP (port **19999**) |
+| **E2E consumer** | `packages/xq-test-harness-e2e-consumer/` | External-style layout; only `workspace:*` harness dep (port **19998**) |
 
-- **`request`:** Standard Playwright API testing fixture. Set `use.baseURL` in `defineApiHarnessConfig` (for example from `process.env.BASE_URL`) so `request.get('/path')` resolves relative URLs as usual.
-- **`xq`:** Reserved fixture (`XQFixture`, currently `{}`) for future XQ-specific context. Include `xq` in step signatures when you want forward compatibility.
+From repo root: `task build:xq-test-harness`, `task test:xq-test-harness`, `task test:xq-test-harness-e2e-consumer`, `task lint:xq-test-harness`.
 
-## Publishing (this monorepo)
+---
 
-- Bump **`version`** in this `package.json` on `main`.
-- CI runs `scripts/check-version-changes.js` and publishes changed workspaces to GitHub Packages (`yarn npm publish` per package).
-- Manual `workflow_dispatch` can publish all non-private workspaces.
+## Publishing
 
-See repo root [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml).
+Bump **`version`** in `package.json` on `main`; CI [`scripts/check-version-changes.js`](../../scripts/check-version-changes.js) publishes changed workspaces to GitHub Packages. See [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml). API-only CI can set **`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`** on install.
 
-## Development (xq-toolbox)
+---
 
-```bash
-task build:xq-test-harness
-task test:xq-test-harness
-task lint:xq-test-harness
-```
+## Related documentation
 
-Dogfood lives under `bdd-dogfood/`; contract-style config assertions under `tests/*.contract.spec.ts`.
-
-## Links
-
-- [Consumer guide](docs/CONSUMER-GUIDE.md)
-- [Test plan](TEST-PLAN.md)
-- Agent skill (full checklist: VS Code, scripts, CI): `skills/xq-test-harness-bdd/SKILL.md` (published with the package)
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md).
+| Document | Audience |
+|----------|----------|
+| [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md) | Teams adopting the harness |
+| [skills/xq-test-harness-bdd/SKILL.md](skills/xq-test-harness-bdd/SKILL.md) | Agents (full setup: registry → VS Code → CI) |
+| [TEST-PLAN.md](TEST-PLAN.md) | QA / regression tiers |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
+| [docs/sdk-fixture.md](../../docs/sdk-fixture.md) | SDK client + `mergeTests` patterns (monorepo) |

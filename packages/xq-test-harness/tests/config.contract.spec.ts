@@ -9,7 +9,6 @@ test.describe('harness Playwright config merge', () => {
         name: 'bdd',
         features: 'bdd-dogfood/**/*.feature',
         steps: 'bdd-dogfood/steps/**/*.ts',
-        importTestFrom: './bdd-world.ts',
         outputDir: '.features-gen',
       },
     });

@@ -9,11 +9,9 @@ export default defineApiHarnessConfig({
     name: 'bdd',
     features: 'features/**/*.feature',
     steps: 'steps/**/*.ts',
-    importTestFrom: './bdd-world.ts',
     outputDir: '.features-gen',
-    disableWarnings: {
-      importTestFrom: true,
-    },
+    importTestFrom: './bdd-world.ts',
+    disableWarnings: { importTestFrom: true },
   },
   use: {
     baseURL: `http://127.0.0.1:${mockPort}`,

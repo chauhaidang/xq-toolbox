@@ -14,3 +14,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `request` uses Playwright’s default API fixture; configure `use.baseURL` in config for relative URLs. Added reserved `xq` fixture (`XQFixture`) as a placeholder for future XQ context.
+- Consumers set **`bdd.importTestFrom`** to **`./bdd-world.ts`** (re-export harness `test` / `expect`); the harness does not inject `importTestFrom` automatically.

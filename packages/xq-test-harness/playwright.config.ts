@@ -8,11 +8,9 @@ export default defineApiHarnessConfig({
     name: 'bdd',
     features: 'bdd-dogfood/**/*.feature',
     steps: 'bdd-dogfood/steps/**/*.ts',
-    importTestFrom: './bdd-world.ts',
     outputDir: '.features-gen',
-    disableWarnings: {
-      importTestFrom: true,
-    },
+    importTestFrom: './bdd-world.ts',
+    disableWarnings: { importTestFrom: true },
   },
   contractSpecs: '**/*.contract.spec.ts',
   contractTestDir: 'tests',

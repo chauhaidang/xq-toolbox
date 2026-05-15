@@ -9,7 +9,7 @@
     "ecmaVersion": 2022,
     "sourceType": "module"
   },
-  "ignorePatterns": ["node_modules", ".features-gen", "bdd-world.ts", "playwright.config.ts"],
+  "ignorePatterns": ["node_modules", ".features-gen", "playwright.config.ts"],
   "rules": {
     "no-console": "off",
     "@typescript-eslint/no-explicit-any": "warn",

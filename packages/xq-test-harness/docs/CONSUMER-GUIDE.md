@@ -1,48 +1,53 @@
 # Consumer guide: `@chauhaidang/xq-test-harness`
 
-For an **agent-oriented end-to-end checklist** (VS Code Cucumber globs through CI), use the published skill **`skills/xq-test-harness-bdd/SKILL.md`** inside the package (or your agent’s skill mirror).
+**Four things to remember:** one Yarn package, `bdd-world.ts`, config with `importTestFrom`, step files import keywords from the harness.
 
-This guide assumes a **new** TypeScript repo using **Yarn 4+** and API-only tests (no browser download required for CI).
+Full agent checklist (VS Code, CI): [skills/xq-test-harness-bdd/SKILL.md](../skills/xq-test-harness-bdd/SKILL.md).  
+Package architecture: [README.md](../README.md).
 
-## 1. Auth and dependency
+---
 
-Add `.npmrc` at the repo root (GitHub Packages):
+## 1. Install
+
+`.npmrc` (GitHub Packages):
 
 ```ini
 @chauhaidang:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
 ```
 
-Install **only** the harness:
-
 ```bash
 yarn add -D @chauhaidang/xq-test-harness typescript @types/node
 ```
 
-Do **not** add `@playwright/test` or `playwright-bdd` as separate dependencies unless you intentionally want a second copy and possible version conflicts.
+Do not add `@playwright/test` or `playwright-bdd` separately.
+
+---
 
 ## 2. `bdd-world.ts`
 
-Create `bdd-world.ts` at the repo root (next to `playwright.config.ts`):
+Re-export the harness `test` and `expect` so **bddgen** generated specs use the same instance as your steps:
 
 ```typescript
 export { test, expect } from '@chauhaidang/xq-test-harness';
 ```
 
-Point playwright-bdd `importTestFrom` at this file so generated tests use the same extended `test` as your steps.
+If you extend or merge fixtures, export your custom `test` / `expect` from this file instead. See [sdk-fixture.md](../../../docs/sdk-fixture.md).
 
-## 3. `playwright.config.ts`
+---
+
+## 3. Config
+
+`playwright.config.ts`:
 
 ```typescript
 import { defineApiHarnessConfig } from '@chauhaidang/xq-test-harness/config';
 
 export default defineApiHarnessConfig({
   bdd: {
-    name: 'bdd',
     features: 'features/**/*.feature',
     steps: 'steps/**/*.ts',
     importTestFrom: './bdd-world.ts',
-    outputDir: '.features-gen',
     disableWarnings: { importTestFrom: true },
   },
   use: {
@@ -51,24 +56,22 @@ export default defineApiHarnessConfig({
 });
 ```
 
-Adjust `features`, `steps`, and `baseURL` for your service.
+---
 
-## 4. Features and steps
+## 4. Steps and run
 
-- Put Gherkin under `features/`.
-- Put step definitions under `steps/`, importing Tier A keywords:
+`steps/example.steps.ts`:
 
 ```typescript
 import { When, Then, expect } from '@chauhaidang/xq-test-harness';
 
 When('I call ping', async ({ request }) => {
-  // ...
+  const res = await request.get('/ping');
+  expect(res.status()).toBe(200);
 });
 ```
 
-The harness `test` also exposes an **`xq`** fixture (`XQFixture`), currently an empty placeholder for future XQ-specific context. You can omit it or add `xq` to the fixture tuple when you want forward compatibility.
-
-## 5. Scripts
+`package.json`:
 
 ```json
 {
@@ -78,10 +81,4 @@ The harness `test` also exposes an **`xq`** fixture (`XQFixture`), currently an 
 }
 ```
 
-## 6. CI
-
-Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on `yarn install` / test jobs when you only use the `request` API.
-
-## 7. Advanced fixtures
-
-To combine the harness with another `test.extend` chain, use `@chauhaidang/xq-test-harness/advanced` (`mergeTests`, `createHarnessBdd`). See the root repo [sdk-fixture.md](../../../docs/sdk-fixture.md) for patterns.
+CI (API-only): set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on `yarn install`.

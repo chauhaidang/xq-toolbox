@@ -39,4 +39,4 @@ export const Then = bdd.Then;
 export const Step = bdd.Step;
 ```
 
-Point step files at this module (or re-export selectively). Keep **one** merged `test` in `bdd-world.ts` / `importTestFrom` so generated tests and steps share the same fixtures.
+Point step files at this module (or re-export selectively). Export the merged `test` / `expect` from `bdd-world.ts` and set **`bdd.importTestFrom: './bdd-world.ts'`** in `defineApiHarnessConfig` so generated tests and steps share the same fixtures.

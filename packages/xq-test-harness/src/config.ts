@@ -64,6 +64,10 @@ export function mergeApiHarnessPlaywrightConfig(
     projects,
     use: harnessUse,
     webServer: options.webServer,
+    reporter: [
+      ['list'],
+      ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ],
   };
 
   const overrides = options.overrides ?? {};

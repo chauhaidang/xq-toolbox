@@ -5,6 +5,7 @@
   "description": "Private workspace: exercises @chauhaidang/xq-test-harness like an external consumer (single harness dependency)",
   "scripts": {
     "test:bdd": "../../node_modules/.bin/bddgen -c playwright.config.ts && ../../node_modules/.bin/playwright test -c playwright.config.ts",
+    "report:show": "../../node_modules/.bin/playwright show-report playwright-report",
     "lint": "eslint . --ext .ts",
     "clean": "rm -rf .features-gen test-results playwright-report"
   },

@@ -1,1 +1,1 @@
-export { test, expect } from './dist/index.js';
+export { test, expect } from '@chauhaidang/xq-test-harness';

@@ -240,6 +240,11 @@ tasks:
     dir: packages/xq-test-harness-e2e-consumer
     cmd: yarn test:bdd
 
+  report:xq-test-harness-e2e-consumer:
+    desc: Open Playwright HTML report for e2e consumer (run tests first)
+    dir: packages/xq-test-harness-e2e-consumer
+    cmd: yarn report:show
+
   lint:xq-test-harness-e2e-consumer:
     desc: Lint e2e consumer TypeScript
     dir: packages/xq-test-harness-e2e-consumer
