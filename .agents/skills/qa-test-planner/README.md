@@ -1,6 +1,6 @@
 # QA Test Planner
 
-A comprehensive Claude Code skill for QA engineers to generate test plans, manual test cases, regression test suites, Figma design validations, and structured bug reports.
+A skill for QA engineers to generate test plans, manual test cases, regression test suites, Figma design validations, and structured bug reports.
 
 ## Purpose
 

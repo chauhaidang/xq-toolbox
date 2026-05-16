@@ -4,7 +4,7 @@
  *
  * Scans all installed @chauhaidang/* packages for a skills/ directory and
  * copies the skill files into the consumer project's .agents/skills/ directory
- * so that Claude Code (and compatible agents) can discover and use them.
+ * so that agent tooling (e.g. Cursor `.agents/skills/`) can discover and use them.
  *
  * Usage (run from the consumer project root after installing packages):
  *   node path/to/install-skills.js

@@ -1,6 +1,6 @@
 # Setup Guide
 
-This repository standard is **Yarn 4 (Berry)** and **Task** for installs and cross-package builds. Prefer `task install`, `task build`, and `task test` from the repo root (see [CLAUDE.md](CLAUDE.md)). The `npm` commands below are generic equivalents if you are not using Task.
+This repository standard is **Yarn 4 (Berry)** and **Task** for installs and cross-package builds. Prefer `task install`, `task build`, and `task test` from the repo root (see [README.md](README.md)). The `npm` commands below are generic equivalents if you are not using Task.
 
 ## Initial Setup
 
