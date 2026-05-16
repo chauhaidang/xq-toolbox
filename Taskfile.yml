@@ -14,6 +14,7 @@ tasks:
     deps:
       - build:xq-test-utils
       - build:xq-test-infra
+      - build:xq-test-harness
 
   test:
     desc: Run tests for all packages
@@ -21,6 +22,8 @@ tasks:
       - test:xq-common-kit
       - test:xq-test-utils
       - test:xq-test-infra
+      - test:xq-test-harness
+      - test:xq-test-harness-e2e-consumer
 
   lint:
     desc: Lint all packages
@@ -28,6 +31,8 @@ tasks:
       - lint:xq-common-kit
       - lint:xq-test-utils
       - lint:xq-test-infra
+      - lint:xq-test-harness
+      - lint:xq-test-harness-e2e-consumer
 
   clean:
     desc: Clean build artifacts and root node_modules
@@ -35,6 +40,8 @@ tasks:
       - clean:xq-common-kit
       - clean:xq-test-utils
       - clean:xq-test-infra
+      - clean:xq-test-harness
+      - clean:xq-test-harness-e2e-consumer
     cmds:
       - rm -rf node_modules
 
@@ -184,6 +191,69 @@ tasks:
           --notes-file /tmp/release-notes.md \
           "{{.ARCHIVE}}"
       - rm -f "{{.ARCHIVE}}"
+
+  # ──────────────────────────────────────────────
+  # xq-test-harness
+  # ──────────────────────────────────────────────
+  build:xq-test-harness:
+    desc: Build xq-test-harness (Playwright API + BDD harness)
+    run: once
+    dir: packages/xq-test-harness
+    sources:
+      - src/**/*.ts
+      - tsconfig.json
+      - package.json
+    generates:
+      - dist/**
+    cmd: yarn build
+
+  test:xq-test-harness:
+    desc: Test xq-test-harness
+    deps:
+      - build:xq-test-harness
+    dir: packages/xq-test-harness
+    cmd: yarn test
+
+  lint:xq-test-harness:
+    desc: Lint xq-test-harness
+    dir: packages/xq-test-harness
+    cmd: yarn lint
+
+  clean:xq-test-harness:
+    desc: Clean xq-test-harness build artifacts
+    dir: packages/xq-test-harness
+    cmd: yarn clean
+
+  # ──────────────────────────────────────────────
+  # xq-test-harness-e2e-consumer
+  # ──────────────────────────────────────────────
+  build:xq-test-harness-e2e-consumer:
+    desc: Build e2e consumer package (no-op; tests depend on harness dist)
+    run: once
+    dir: packages/xq-test-harness-e2e-consumer
+    cmd: ':'
+
+  test:xq-test-harness-e2e-consumer:
+    desc: E2E consumer BDD suite against mock HTTP
+    deps:
+      - build:xq-test-harness
+    dir: packages/xq-test-harness-e2e-consumer
+    cmd: yarn test:bdd
+
+  report:xq-test-harness-e2e-consumer:
+    desc: Open Playwright HTML report for e2e consumer (run tests first)
+    dir: packages/xq-test-harness-e2e-consumer
+    cmd: yarn report:show
+
+  lint:xq-test-harness-e2e-consumer:
+    desc: Lint e2e consumer TypeScript
+    dir: packages/xq-test-harness-e2e-consumer
+    cmd: yarn lint
+
+  clean:xq-test-harness-e2e-consumer:
+    desc: Clean e2e consumer generated BDD output
+    dir: packages/xq-test-harness-e2e-consumer
+    cmd: yarn clean
 
   # ──────────────────────────────────────────────
   # Future language support (templates for reference)

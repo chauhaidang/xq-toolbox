@@ -35,6 +35,7 @@ jobs:
         run: yarn install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - name: Check if any package.json version changed
         id: version_check
         shell: bash
@@ -79,6 +80,7 @@ jobs:
         run: yarn install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - name: Build packages
         run: task build
         env:

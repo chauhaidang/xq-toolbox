@@ -1,0 +1,11 @@
+{
+  "cucumberautocomplete.steps": [
+    "features/**/*.ts",
+    "features/**/*.js",
+    "steps/**/*.ts",
+    "steps/**/*.js",
+    "node_modules/@chauhaidang/xq-test-harness/dist/**/*.js",
+    "node_modules/@chauhaidang/xq-test-harness/dist/**/*.ts"
+  ],
+  "cucumberautocomplete.strictGherkinCompletion": true
+}
