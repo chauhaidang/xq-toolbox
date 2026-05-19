@@ -13,7 +13,7 @@ Project overview and architecture for the XQ **Playwright API + Gherkin BDD** ha
 | **API-first backend tests** | No browser channel by default; `request` is Playwright’s native fixture; `use.baseURL` in config drives relative URLs. |
 | **Gherkin without ceremony** | **Tier A:** one `test`, pre-bound `Given` / `When` / `Then` / `Step`; consumers do not call `createBdd` in normal flows. |
 | **Single consumer dependency** | `@playwright/test` and `playwright-bdd` are **bundled** as runtime `dependencies` (not peers). |
-| **Room for XQ-specific context** | Reserved **`xq`** fixture (`XQFixture`, currently `{}`) for future shared clients, auth, or tracing. |
+| **Room for XQ-specific context** | Reserved **`xq`** fixture (`XQFixture`) with logging and placeholder infra buckets; **`xq.apis`** is an empty shell typed via mergeable **`XQApiClients`** (consumers augment types and merge runtime clients in **`bdd-world.ts`**). |
 | **Escape hatch** | `./advanced` exports `mergeTests` and `createHarnessBdd` for custom `test.extend` / merged fixtures. |
 
 **Out of scope (today):** shipping generated OpenAPI clients, browser UI tests, or Python/Java harnesses (separate packages later).
@@ -102,7 +102,8 @@ Monorepo sibling: **`packages/xq-test-harness-e2e-consumer/`** (private) depends
 ### `src/fixtures/base.ts`
 
 - Extends **`playwright-bdd`’s `test`** (required so `createBdd` binds to the bdd runtime, not raw `@playwright/test`).
-- Adds **`xq: XQFixture`** — placeholder fixture for future XQ context; steps may include `{ xq }` for forward compatibility.
+- Adds **`xq: XQFixture`** — shared context with **`apis: {}`** at runtime until the consumer merges clients; **`XQApiClients`** is an empty mergeable **`interface`** for consumer augmentation (see [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md)).
+- Consumers must align augmentation with **`test.extend`** on **`xq.apis`**; the harness does not ship SDK instances.
 - Re-exports **`expect`** from `@playwright/test`.
 - Does **not** override **`request`**; consumers set **`use.baseURL`** in config (e.g. from `process.env.BASE_URL`).
 
@@ -113,7 +114,7 @@ Monorepo sibling: **`packages/xq-test-harness-e2e-consumer/`** (private) depends
 
 ### `src/index.ts` (export `"."`)
 
-- **`test`**, **`expect`**, Tier A BDD exports, type **`XQFixture`**.
+- **`test`**, **`expect`**, Tier A BDD exports, types **`XQFixture`** and **`XQApiClients`**.
 - Does **not** export `mergeTests` or raw `createBdd`.
 
 ### `src/config.ts` (export `"./config"`)
@@ -125,7 +126,7 @@ Monorepo sibling: **`packages/xq-test-harness-e2e-consumer/`** (private) depends
 
 ### `src/advanced.ts` (export `"./advanced"`)
 
-- **`mergeTests`**, **`createHarnessBdd`** for consumers that extend or merge custom fixtures (see monorepo [docs/sdk-fixture.md](../../docs/sdk-fixture.md)).
+- **`mergeTests`**, **`createHarnessBdd`** escape hatch (not required for the default **`xq.apis`** flow in [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md)).
 
 ---
 
@@ -137,7 +138,7 @@ Monorepo sibling: **`packages/xq-test-harness-e2e-consumer/`** (private) depends
 | **Dependencies** | Bundle `@playwright/test` + `playwright-bdd`; consumers install **only** this package for the stack. |
 | **`importTestFrom`** | Consumer sets **`bdd.importTestFrom`** to **`./bdd-world.ts`** (or a custom merged `test` module). |
 | **`request`** | Native Playwright fixture; configure via **`use.baseURL`** in `defineApiHarnessConfig`. |
-| **`xq`** | Reserved fixture; implementation deferred. |
+| **`xq` / `XQApiClients`** | Empty `xq.apis` + mergeable interface; consumers augment types and merge matching instances in `bdd-world.ts`. |
 | **Gherkin And/But** | In features only; step files use `Given`/`When`/`Then`/`Step`. |
 
 ---
@@ -146,7 +147,7 @@ Monorepo sibling: **`packages/xq-test-harness-e2e-consumer/`** (private) depends
 
 | Subpath | Role |
 |---------|------|
-| `@chauhaidang/xq-test-harness` | `test`, `expect`, `Given`, `When`, `Then`, `Step`, `XQFixture` |
+| `@chauhaidang/xq-test-harness` | `test`, `expect`, `Given`, `When`, `Then`, `Step`, `XQFixture`, `XQApiClients` |
 | `@chauhaidang/xq-test-harness/config` | `defineApiHarnessConfig`, `mergeApiHarnessPlaywrightConfig`, `defineBddProject` |
 | `@chauhaidang/xq-test-harness/advanced` | `mergeTests`, `createHarnessBdd` |
 
@@ -176,8 +177,7 @@ Bump **`version`** in `package.json` on `main`; CI [`scripts/check-version-chang
 
 | Document | Audience |
 |----------|----------|
-| [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md) | Teams adopting the harness |
+| [docs/CONSUMER-GUIDE.md](docs/CONSUMER-GUIDE.md) | Teams adopting the harness (`bdd-world.ts`, `XQApiClients`, `xq.apis`) |
 | [skills/xq-test-harness-bdd/SKILL.md](skills/xq-test-harness-bdd/SKILL.md) | Agents (full setup: registry → VS Code → CI) |
 | [TEST-PLAN.md](TEST-PLAN.md) | QA / regression tiers |
 | [CHANGELOG.md](CHANGELOG.md) | Release notes |
-| [docs/sdk-fixture.md](../../docs/sdk-fixture.md) | SDK client + `mergeTests` patterns (monorepo) |

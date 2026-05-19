@@ -152,13 +152,44 @@ export default defineApiHarnessConfig({
 
 - **`importTestFrom`:** points **bddgen** at the same **`test`** instance your steps use (via **`bdd-world.ts`**).
 - **`use.baseURL`:** Playwright’s native **`request`** fixture uses this for relative URLs; set from env per environment.
-- **`xq`:** reserved **`xq`** fixture (`XQFixture`, currently `{}`) for future XQ context.
+- **`xq`:** reserved **`xq`** fixture (`XQFixture`) with logging and placeholder infra buckets; **`xq.apis`** is **`{}`** until the consumer merges clients in **`bdd-world.ts`**.
 - **`webServer`:** add when you need a local HTTP mock or app under test.
-- **Custom merged `test`:** export your extended or merged `test`/`expect` from **`bdd-world.ts`** instead (see [sdk-fixture.md](https://github.com/chauhaidang/xq-toolbox/blob/main/docs/sdk-fixture.md)).
+- **API clients:** the harness does not ship SDK instances; wire types and clients in **`bdd-world.ts`** (see section 6 and **`docs/CONSUMER-GUIDE.md`** in the harness package).
 
 ---
 
-## 6. Step definitions (Tier A)
+## 6. API clients on `xq.apis` (`bdd-world.ts`)
+
+The harness does **not** provide SDK instances. Put **`declare module`** augmentation and **`test.extend`** runtime wiring in one **`bdd-world.ts`**. Set **`bdd.importTestFrom: './bdd-world.ts'`**.
+
+```typescript
+import { test as base, expect } from "@chauhaidang/xq-test-harness";
+import { ReadServiceApi } from "@chauhaidang/read-service-api";
+
+declare module "@chauhaidang/xq-test-harness" {
+  interface XQApiClients {
+    read: ReadServiceApi;
+  }
+}
+
+export const test = base.extend({
+  xq: async ({ xq }, use) => {
+    const baseURL = process.env.BASE_URL ?? "";
+    await use({
+      ...xq,
+      apis: { ...xq.apis, read: new ReadServiceApi({ basePath: baseURL }) },
+    });
+  },
+});
+
+export { expect };
+```
+
+Full copy-paste blocks: **`docs/CONSUMER-GUIDE.md`** section 2.
+
+---
+
+## 7. Step definitions (Tier A)
 
 ```typescript
 import { When, Then, expect } from "@chauhaidang/xq-test-harness";
@@ -169,11 +200,11 @@ When("I call ping", async ({ request }) => {
 });
 ```
 
-Imports must come from **`@chauhaidang/xq-test-harness`** for normal flows. **`@chauhaidang/xq-test-harness/advanced`** is only for **`mergeTests`** / **`createHarnessBdd`** (patterns: [sdk-fixture.md](https://github.com/chauhaidang/xq-toolbox/blob/main/docs/sdk-fixture.md) in the xq-toolbox repo).
+Imports must come from **`@chauhaidang/xq-test-harness`** for normal flows (see **`docs/CONSUMER-GUIDE.md`**).
 
 ---
 
-## 7. Scripts (`package.json`)
+## 8. Scripts (`package.json`)
 
 ```json
 {
@@ -188,14 +219,14 @@ Imports must come from **`@chauhaidang/xq-test-harness`** for normal flows. **`@
 
 ---
 
-## 8. CI
+## 9. CI
 
 - Set **`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`** on **`yarn install`** (and optionally on test) when you only use **`request`** (API-only) to avoid downloading browsers in CI.
 - Ensure **`NODE_AUTH_TOKEN`** (or `GITHUB_TOKEN` with `read:packages`) is available so `.npmrc` can authenticate to GitHub Packages.
 
 ---
 
-## 9. Verify
+## 10. Verify
 
 ```bash
 yarn install
@@ -206,18 +237,17 @@ Expect **`bddgen`** to create **`.features-gen/`** and Playwright to run the **b
 
 ---
 
-## 10. References (human docs)
+## 11. References (human docs)
 
 | Doc | Purpose |
 |-----|---------|
 | Package **README** (in the harness package) | ADR, publishing, public API table |
-| **`docs/CONSUMER-GUIDE.md`** (in the harness package) | Same flow in prose with copy-paste blocks |
-| Monorepo [docs/sdk-fixture.md](https://github.com/chauhaidang/xq-toolbox/blob/main/docs/sdk-fixture.md) | Merging generated SDK clients via `./advanced` |
+| **`docs/CONSUMER-GUIDE.md`** (in the harness package) | Install, `bdd-world.ts`, config, steps |
 
 ---
 
 ## Rules (agent)
 
-- Prefer **Tier A** imports from `@chauhaidang/xq-test-harness`; use **`/advanced`** only for merged custom `test` + **`createHarnessBdd`**.
-- Add **`bdd-world.ts`** and **`bdd.importTestFrom: './bdd-world.ts'`** for every consumer; use a custom **`test`** export in **`bdd-world.ts`** only when merging fixtures.
+- Prefer **Tier A** imports from `@chauhaidang/xq-test-harness`; follow **`docs/CONSUMER-GUIDE.md`** for **`bdd-world.ts`**, **`XQApiClients`**, and **`xq.apis`**.
+- Add **`bdd-world.ts`** (types + client instances) and **`bdd.importTestFrom: './bdd-world.ts'`** for every consumer.
 - Add **VS Code** step globs (section 4) whenever the user uses Cucumber autocomplete; without **`node_modules/.../dist/`** globs, cross-package navigation may be incomplete for the installed harness.

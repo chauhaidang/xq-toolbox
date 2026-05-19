@@ -74,8 +74,7 @@ Full templates: [SETUP.md](SETUP.md). Python (`uv`) and Go package notes are in 
 ## More docs
 
 - [SETUP.md](SETUP.md) — scaffolding template
-- [docs/sdk-fixture.md](docs/sdk-fixture.md) — merging generated API clients with the harness
-- [packages/xq-test-harness/docs/CONSUMER-GUIDE.md](packages/xq-test-harness/docs/CONSUMER-GUIDE.md) — adopting the BDD harness
+- [packages/xq-test-harness/docs/CONSUMER-GUIDE.md](packages/xq-test-harness/docs/CONSUMER-GUIDE.md) — adopting the BDD harness and wiring API clients
 
 ## License
 

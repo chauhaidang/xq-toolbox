@@ -1,6 +1,6 @@
 # Consumer guide: `@chauhaidang/xq-test-harness`
 
-**Four things to remember:** one Yarn package, `bdd-world.ts`, config with `importTestFrom`, step files import keywords from the harness.
+**Four things to remember:** one Yarn package; **`bdd-world.ts`** (types + client instances); config with **`importTestFrom`**; step files import keywords from the harness.
 
 Full agent checklist (VS Code, CI): [skills/xq-test-harness-bdd/SKILL.md](../skills/xq-test-harness-bdd/SKILL.md).  
 Package architecture: [README.md](../README.md).
@@ -20,19 +20,45 @@ Package architecture: [README.md](../README.md).
 yarn add -D @chauhaidang/xq-test-harness typescript @types/node
 ```
 
-Do not add `@playwright/test` or `playwright-bdd` separately.
+Do not add `@playwright/test` or `playwright-bdd` separately. Add your generated or hand-rolled API client packages as needed (for example `@chauhaidang/read-service-api`).
 
 ---
 
 ## 2. `bdd-world.ts`
 
-Re-export the harness `test` and `expect` so **bddgen** generated specs use the same instance as your steps:
+The harness does **not** ship SDK instances. It provides runtime **`xq.apis`** as **`{}`** and an empty mergeable **`XQApiClients`** interface until you wire clients in **`bdd-world.ts`**.
+
+Put **declaration merging** and **runtime clients** in one file. **`bddgen`** and your steps use the **`test`** you export here; set **`bdd.importTestFrom: './bdd-world.ts'`** in config (section 3).
 
 ```typescript
-export { test, expect } from '@chauhaidang/xq-test-harness';
+import { test as base, expect } from '@chauhaidang/xq-test-harness';
+import { ReadServiceApi } from '@chauhaidang/read-service-api';
+
+declare module '@chauhaidang/xq-test-harness' {
+  interface XQApiClients {
+    read: ReadServiceApi;
+  }
+}
+
+export const test = base.extend({
+  xq: async ({ xq }, use) => {
+    const baseURL = process.env.BASE_URL ?? '';
+    await use({
+      ...xq,
+      apis: {
+        ...xq.apis,
+        read: new ReadServiceApi({ basePath: baseURL }),
+      },
+    });
+  },
+});
+
+export { expect };
 ```
 
-If you extend or merge fixtures, export your custom `test` / `expect` from this file instead. See [sdk-fixture.md](../../../docs/sdk-fixture.md).
+Add more SDKs by extending **`XQApiClients`** and adding matching keys under **`apis`** in the same file. Keep names aligned between the interface and **`apis`**.
+
+A shared **`@org/test-clients`** package can export the same **`bdd-world.ts`** (or re-export its **`test`** / **`expect`**) for multiple test repos.
 
 ---
 
@@ -65,6 +91,15 @@ export default defineApiHarnessConfig({
 ```typescript
 import { When, Then, expect } from '@chauhaidang/xq-test-harness';
 
+When('I call ping via the read API client', async ({ xq }) => {
+  const res = await xq.apis.read.ping(); // example; method name depends on your SDK
+  expect(res).toBeDefined();
+});
+```
+
+Use Playwright’s **`request`** fixture when you need raw HTTP without a typed SDK:
+
+```typescript
 When('I call ping', async ({ request }) => {
   const res = await request.get('/ping');
   expect(res.status()).toBe(200);
